@@ -28,6 +28,10 @@ extract_data <- function(station_name, dom) {
         subset(nchar(.) > 1) # replace empty element in vector
 }
 
+simple_tibble <- function() {
+    
+}
+
 # Define tibble's length
 (tibble_length <- extract_data(krainafm, "div.col-xs-12.playlist-item") %>%
         length() - 1)
