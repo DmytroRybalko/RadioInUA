@@ -13,7 +13,7 @@ selectr::css_to_xpath("#selectr")
 
 # Download the static HTML
 #krainafm <- xml2::read_html("krainafm2017_10_04_09FULL.html")
-file_name <- "krainafm_2017_05_01_19.html"
+file_name <- "test_data/krainafm_2017_05_01_19.html"
 krainafm <- xml2::read_html(file_name)
 #krainafm_2017_05_01_01.html
 
@@ -83,99 +83,6 @@ song_length[1]
 (duration_min <- minute(ms(song_length[1])))
 (duration_min <- second(ms(song_length[1])))
 
-################### Make TIBBLE ##########################
-
-# FM station | year | month | day | start_hour | start_min | end_hour | end_min
-# duration_min | duration_sec | singer | song
-# Each variable in template is a vector. Then we should bind theirs in tibble.
-
-# Extract singer, song and ... 
-extract_data <- function(station_name, dom) {
-    html_nodes(station_name, dom) %>%
-        html_text() %>%
-        subset(nchar(.) > 1) # replace empty element in vector
-}
-
-(tibble_length <- extract_data(krainafm, "div.col-xs-12.playlist-item") %>%
-    length() - 1)
-
-# FM station
-# Create vector of FM station's
-FMs <- str_extract(file_name, "^[a-zA-Z]+") %>%
-    rep(tibble_length)
-
-# Extract date from file name
-ddate <- str_extract(file_name, "\\d\\d\\d\\d_\\d\\d_\\d\\d") %>%
-    as_date()
-
-# year
-year_s <- year(ddate) %>%
-    rep(tibble_length)
-# month
-month_s <- month(ddate) %>%
-    rep(tibble_length)
-# day
-day_s <- day(ddate) %>%
-    rep(tibble_length)
-
-# start_hour
-(start_hour <- extract_data(krainafm, "div.time.col-xs-2") %>%
-    str_extract("(?<=\\[)(\\d\\d:\\d\\d)") %>%
-    hm %>%
-    hour)
-
-# start_min
-(start_min <- extract_data(krainafm, "div.time.col-xs-2") %>%
-    str_extract("(?<=\\[)(\\d\\d:\\d\\d)") %>%
-    hm %>%
-    minute())
-
-# end_hour
-(end_hour <- extract_data(krainafm, "div.time.col-xs-2") %>%
-    str_extract("(\\d\\d:\\d\\d)(?=])") %>%
-    hm %>%
-    hour())
-
-# end_min
-(end_min <- extract_data(krainafm, "div.time.col-xs-2") %>%
-        str_extract("(\\d\\d:\\d\\d)(?=])") %>%
-        hm %>%
-        minute())
-
-# duration_min
-duration_min <- extract_data(krainafm, "div.length.col-xs-1") %>%
-    ms %>%
-    minute()
-
-# duration_sec
-duration_sec <- extract_data(krainafm, "div.length.col-xs-1") %>%
-    ms %>%
-    second()
-
-# singer
-(singer <- extract_data(krainafm, "span.ellipsis") %>%
-    str_split(" - ", simplify = TRUE) %>%
-        .[, 1])
-
-# song
-(song <- extract_data(krainafm, "span.ellipsis") %>%
-        str_split(" - ", simplify = TRUE) %>%
-        .[, 2])
-
-# Make finale tibble
-my_tibble <- tibble(FM_station = FMs,
-       year = year_s,
-       month = month_s,
-       day = day_s,
-       start_hour = start_hour,
-       end_hour = end_hour,
-       end_min = end_min,
-       duration_min = duration_min,
-       duration_sec = duration_sec,
-       singer = singer,
-       song = song)
-
-
 ################### DRAFT ZONE ############################
 
 # Make tibble from vectors
@@ -184,3 +91,8 @@ end_s <- c("5:16", "10:21", "12:43")
 length_s <- c("3:12", "4:15", "3:58")
 singer <- c("Гайтана", "Скрябін", "Антитіла")
 (tb <- tibble(start = start_s, end = end_s, duration = length_s, singer = singer))
+
+# Save tibble into file
+saveRDS(tb, "test_data/test_tibble.rds")
+# Load tibble from file
+read_tibble <- readRDS("test_data/test_tibble.rds")
