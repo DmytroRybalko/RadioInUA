@@ -22,16 +22,20 @@ extract_data <- function(composition, dom) {
 
 # Each variable in template is a vector. Then we should bind theirs in tibble.
 
-simple_tibble <- function(file_name = "krainafm_2017_05_01_19.html") {
+simple_tibble <- function(full_file_name) {
     
     # Load XML data from file
-    composition <- xml2::read_html(file_name)
+    composition <- xml2::read_html(full_file_name)
     
     # Define tibble's length
     tibble_length <- extract_data(composition, "div.col-xs-12.playlist-item") %>%
         length() - 1
     
     ### Make template's variables
+    
+    # Get bare file name
+    file_name <- str_split(full_file_name, "/")[[1]] %>%
+        .[length(.)]
     
     ## FM station
     FMs <- str_extract(file_name, "^[a-zA-Z]+") %>%
@@ -53,39 +57,37 @@ simple_tibble <- function(file_name = "krainafm_2017_05_01_19.html") {
     day_s <- day(ddate) %>%
         rep(tibble_length)
     
+    # Extract start time
+    start_time <- extract_data(composition, "div.time.col-xs-2") %>%
+        str_extract("(?<=\\[)(\\d\\d:\\d\\d)") %>%
+        hm
+    
     ## start_hour
-    start_hour <- extract_data(composition, "div.time.col-xs-2") %>%
-            str_extract("(?<=\\[)(\\d\\d:\\d\\d)") %>%
-            hm %>%
-            hour
+    start_hour <- hour(start_time)
     
     ## start_min
-    start_min <- extract_data(composition, "div.time.col-xs-2") %>%
-            str_extract("(?<=\\[)(\\d\\d:\\d\\d)") %>%
-            hm %>%
-            minute()
+    start_min <- minute(start_time)
     
+    # Extract end time
+    end_time <- extract_data(composition, "div.time.col-xs-2") %>%
+        str_extract("(\\d\\d:\\d\\d)(?=])") %>%
+        hm
+        
     ## end_hour
-    end_hour <- extract_data(composition, "div.time.col-xs-2") %>%
-            str_extract("(\\d\\d:\\d\\d)(?=])") %>%
-            hm %>%
-            hour()
+    end_hour <- hour(end_time)
     
     ## end_min
-    end_min <- extract_data(composition, "div.time.col-xs-2") %>%
-            str_extract("(\\d\\d:\\d\\d)(?=])") %>%
-            hm %>%
-            minute()
+    end_min <- minute(end_time)
+    
+    # Extract duration
+    duration_time <- extract_data(composition, "div.length.col-xs-1") %>%
+        ms
     
     ## duration_min
-    duration_min <- extract_data(composition, "div.length.col-xs-1") %>%
-        ms %>%
-        minute()
+    duration_min <- minute(duration_time)
     
     ## duration_sec
-    duration_sec <- extract_data(composition, "div.length.col-xs-1") %>%
-        ms %>%
-        second()
+    duration_sec <- second(duration_time)
     
     ## singer
     singer <- extract_data(composition, "span.ellipsis") %>%
@@ -103,6 +105,7 @@ simple_tibble <- function(file_name = "krainafm_2017_05_01_19.html") {
                         month = month_s,
                         day = day_s,
                         start_hour = start_hour,
+                        start_min = start_min,
                         end_hour = end_hour,
                         end_min = end_min,
                         duration_min = duration_min,
@@ -115,5 +118,5 @@ simple_tibble <- function(file_name = "krainafm_2017_05_01_19.html") {
 
 ######################### TEST ZONE ########################
 
-simple_tibble("krainafm_2017_05_01_01.html") %>%
-    View()
+# simple_tibble("krainafm_2017_05_01_01.html") %>%
+#     View()
