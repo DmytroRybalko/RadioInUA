@@ -16,6 +16,15 @@ source("simple_tibble.R")
 
 
 ############### DRAFT ZONE ############################
+# Construct path with regex
+# Create function that will read data on one level of directory's structure
+str_view("test_data/krainafm/2017/05/01/krainafm_2017_05_01_01.html",
+         "(\\d{4}/\\d{2}/\\d{2})") # 2017/05/01
+
+my_path <- "test_data/krainafm/2017/05"
+(list.dirs(my_path))
+(mfiles <- str_subset(list.dirs(my_path),"(\\d{4}/\\d{2}/\\d{2})"))
+
 # Test regex template for file name
 # /\\d\\d$ for region 01..31
 (files <- str_subset(list.dirs("test_data"),"/\\d\\d$") %>%
