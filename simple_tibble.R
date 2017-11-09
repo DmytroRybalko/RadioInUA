@@ -13,6 +13,26 @@ extract_data <- function(composition, dom) {
         html_text() %>%
         subset(nchar(.) > 1) # replace empty element in vector
 }
+########################################################
+
+################### Write simple tibbles ##########################
+
+# Function take list of files from directory, get access to read simple file
+# and write cummulative tibble with data from each files. This function is
+# wrapper around of simple_tibble function.
+
+write_simple_tibbles <- function(dir_with_files) {
+    # Make name for RDS-file
+    rds_name <- str_extract(dir_with_files,
+                            "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
+        str_replace_all("/", "_") %>%
+        str_c(dir_with_files, "/", ., ".RDS")
+    
+    # Work with list of files
+    files <- list.files(dir_with_files, full.names = T) %>%
+        map_dfr(simple_tibble) %>%
+        saveRDS(rds_name)
+}
 
 ################### Make TIBBLE ##########################
 
@@ -29,7 +49,7 @@ simple_tibble <- function(full_file_name) {
     
     # Define tibble's length
     tibble_length <- extract_data(composition, "div.col-xs-12.playlist-item") %>%
-        length() - 1
+        length() - 1 #!!! can be problem with length = 1 !!!
     
     ### Make template's variables
     

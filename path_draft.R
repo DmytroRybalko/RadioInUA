@@ -15,18 +15,6 @@ source("simple_tibble.R")
 
 
 
-# Function take list of files from directory, get access to read simple file
-# and write cummulative tibble with data from each files. This function is
-# wrapper around of simple_tibble function.
-
-write_simple_tibbles <- function(dir_with_files) {
-    # Get list of files
-    files <- list.files(dir_with_files)
-    
-    # Get list of tibbles from each file 
-    ## map(files, simple_tibble)
-    ## map_dfr(files, simple_tibble)
-}
 ############### DRAFT ZONE ############################
 # Test regex template for file name
 # /\\d\\d$ for region 01..31
@@ -46,8 +34,34 @@ map_dfr(files, simple_tibble) %>%
 (my_dirs <- str_subset(list.dirs("raw_data"),"05/0[1-9]"))
 # Get list of files
 (my_list <- list.files(my_dirs[1], full.names = T))
-#map_chr(my_list,)
 
+###### Make name for RDS ########
+
+# Extract name from full directory name path
+str_view("raw_data/krainafm/2017/05/01", "([a-z]+)(?=/\\d\\d\\d\\d/)")
+## krainafm
+str_view("raw_data/krainafm/2017/05/01", "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)")
+## krainafm/2017/05/01
+str_extract(my_dirs[1], "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)")
+
+# Make full name for RDS file
+(dir_name <- str_extract(my_dirs[1], "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
+    str_replace_all("/", "_")) %>%
+    str_c(my_dirs[1], "/", ., ".RDS")
+
+
+# Get last dir name (dfef/dwf/04, 04 is true)
+(dir_name <- str_split(my_dirs[1], "/")[[1]] %>%
+    .[length(.)])
+# Get full dir name
+(dir_name <- str_replace_all(my_dirs[1], "/", "_"))
+# Make new name
+(rds_name <- paste0(my_dirs[1], "/", dir_name, ".RDS"))
+# All at one
+(dir_name <- str_split(my_dirs[1], "/")[[1]] %>%
+        .[length(.)] %>%
+        paste0(my_dirs[1], "/", ., ".RDS"))
+#################################################
 
 # Extract file name from full path
 #path2file <- "krainafm_2017_05_01_01.html"
