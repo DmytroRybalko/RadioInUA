@@ -5,7 +5,8 @@ source("simple_tibble.R")
 ################### TEST write_simple_tibbles FUN #########
 # Directory with test data
 (test_dir <- str_subset(list.dirs("test_data"),"/\\d\\d$"))
-list.files(test_dir[2], full.names = T)
+# Filter non html files (.RDS is present)
+list.files(test_dir[2], full.names = T, pattern = ".html$")
 
 write_simple_tibbles(test_dir[2])
 # Result view

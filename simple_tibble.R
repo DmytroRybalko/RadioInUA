@@ -13,6 +13,21 @@ extract_data <- function(composition, dom) {
         html_text() %>%
         subset(nchar(.) > 1) # replace empty element in vector
 }
+
+# Function takes paths to dirs according to pattern and pass theirs to
+# particular function
+construct_path <- function(my_path, my_pattern, my_func) {
+    # path example "test_data/krainafm/2017/05"
+    # pattern example regex: "(\\d{4}/\\d{2}/\\d{2})"
+    # This combination of path and pattern gives directories with files:
+    # "test_data/krainafm/2017/05/01/krainafm_2017_05_01_01.html" and filter
+    # directories like this:
+    # "test_data/krainafm/2017/05/" or "test_data/krainafm/2017/"
+    
+    # Filter dirs that match pattern
+    files <- str_subset(list.dirs(my_path), my_pattern) %>%
+        map_fun(my_fun)
+}
 ########################################################
 
 ################### Write simple tibbles ##########################
@@ -28,8 +43,8 @@ write_simple_tibbles <- function(dir_with_files) {
         str_replace_all("/", "_") %>%
         str_c(dir_with_files, "/", ., ".RDS")
     
-    # Work with list of files
-    files <- list.files(dir_with_files, full.names = T) %>%
+    # Work with list of HTML (!!!) files
+    files <- list.files(dir_with_files, full.names = T, pattern = ".html$") %>%
         map_dfr(simple_tibble) %>%
         saveRDS(rds_name)
 }
