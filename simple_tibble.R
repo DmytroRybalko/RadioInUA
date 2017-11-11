@@ -14,6 +14,18 @@ extract_data <- function(composition, dom) {
         subset(nchar(.) > 1) # replace empty element in vector
 }
 
+file_name <- function(root_path, re_file_name) {
+    # Function make file name from file's path:
+    # root_path = "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
+    # re_file_name = "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)"
+    # out: test_data/krainafm/2017/05/krainafm_2017_05.RDS
+    
+    str_extract(root_path, re_file_name) %>%
+        str_replace_all("/", "_") %>%
+        str_c(root_path, "/", ., ".RDS")
+}
+    
+
 # Function takes paths to dirs according to pattern and pass theirs to
 # particular function
 construct_path <- function(my_path, my_pattern, my_func) {
@@ -22,13 +34,34 @@ construct_path <- function(my_path, my_pattern, my_func) {
     # This combination of path and pattern gives directories with files:
     # "test_data/krainafm/2017/05/01/krainafm_2017_05_01_01.html" and filter
     # directories like this:
-    # "test_data/krainafm/2017/05/" or "test_data/krainafm/2017/"
+    # "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
     
     # Filter dirs that match pattern
     files <- str_subset(list.dirs(my_path), my_pattern) %>%
         map_fun(my_fun)
 }
 ########################################################
+
+#################################################################
+################### write_read_tibbles ##########################
+#################################################################
+
+# pattern = ".html$"; ".RDS$"
+write_read_tibbles <- function(
+    root_path = "test_data/krainafm/2017/05/",
+    re_file_name = "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)",
+    re_file_ext = ".html$",
+    map_fun = map_dfr(),
+    my_fun = simple_tibble()) {
+    
+    # Make name for RDS-file
+    rds_name <- file_name(root_path)
+    # Work with list of HTML (!!!) files
+    files <- list.files(root_path, full.names = T, pattern = re_file_ext) %>%
+        map_fun(my_fun) %>%
+        saveRDS(rds_name)
+}
+
 
 ################### Write simple tibbles ##########################
 
@@ -37,6 +70,7 @@ construct_path <- function(my_path, my_pattern, my_func) {
 # wrapper around of simple_tibble function.
 
 write_simple_tibbles <- function(dir_with_files) {
+    # dir_with_files look like root_dir/station_name/2017/05/01
     # Make name for RDS-file
     rds_name <- str_extract(dir_with_files,
                             "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%

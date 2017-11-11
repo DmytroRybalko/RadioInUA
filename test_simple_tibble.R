@@ -2,6 +2,15 @@ library(stringr)
 library(tidyverse)
 source("simple_tibble.R")
 
+################### TEST file_name FUN #########
+
+# Function make file name from file's path:
+test_root_path = c("test_data/krainafm/2017/05/01", "test_data/krainafm/2017/05")
+test_re_file_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)"
+# out: test_data/krainafm/2017/05/krainafm_2017_05.RDS
+(file_name(test_root_path[1], test_re_file_name))
+(file_name(test_root_path[2], test_re_file_name))
+
 ################### TEST write_simple_tibbles FUN #########
 # Directory with test data
 (test_dir <- str_subset(list.dirs("test_data"),"/\\d\\d$"))
