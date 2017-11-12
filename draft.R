@@ -91,8 +91,9 @@ end_s <- c("5:16", "10:21", "12:43")
 length_s <- c("3:12", "4:15", "3:58")
 singer <- c("Гайтана", "Скрябін", "Антитіла")
 (tb <- tibble(start = start_s, end = end_s, duration = length_s, singer = singer))
-
+names(tb)
 # Save tibble into file
 saveRDS(tb, "test_data/test_tibble.rds")
 # Load tibble from file
 read_tibble <- readRDS("test_data/test_tibble.rds")
+View(read_tibble)

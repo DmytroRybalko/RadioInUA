@@ -14,7 +14,7 @@ extract_data <- function(composition, dom) {
         subset(nchar(.) > 1) # replace empty element in vector
 }
 
-file_name <- function(root_path, re_file_name) {
+file_name <- function(root_path, re_file_name, file_ext = ".rds") {
     # Function make file name from file's path:
     # root_path = "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
     # re_file_name = "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)"
@@ -22,7 +22,7 @@ file_name <- function(root_path, re_file_name) {
     
     str_extract(root_path, re_file_name) %>%
         str_replace_all("/", "_") %>%
-        str_c(root_path, "/", ., ".RDS")
+        str_c(root_path, "/", ., file_ext)
 }
     
 
@@ -42,22 +42,28 @@ construct_path <- function(my_path, my_pattern, my_func) {
 }
 ########################################################
 
-#################################################################
-################### write_read_tibbles ##########################
-#################################################################
 
-# pattern = ".html$"; ".RDS$"
+################### write_read_tibbles ##########################
+################################################################# 
+
+
 write_read_tibbles <- function(
-    root_path = "test_data/krainafm/2017/05/",
-    re_file_name = "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)",
-    re_file_ext = ".html$",
-    map_fun = map_dfr(),
-    my_fun = simple_tibble()) {
+    root_path, # test_data/krainafm/2017/05
+    re_file_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)",
+    re_file_ext = ".html$", # ".rds$"
+    map_fun = map_dfr,
+    my_fun = simple_tibble) {
+    
+    # Function takes list of files that contain tibbles or data for transforming
+    # into tibbles by calling respective functions (my_fun). These functions
+    # create or read tibbles that then accummulate by map_* function and write
+    # into file.
     
     # Make name for RDS-file
-    rds_name <- file_name(root_path)
-    # Work with list of HTML (!!!) files
-    files <- list.files(root_path, full.names = T, pattern = re_file_ext) %>%
+    rds_name <- file_name(root_path, re_file_name)
+    
+    # Bind list of tibbles at one and save to rds-file
+    list.files(root_path, full.names = T, pattern = re_file_ext) %>%
         map_fun(my_fun) %>%
         saveRDS(rds_name)
 }
@@ -75,7 +81,7 @@ write_simple_tibbles <- function(dir_with_files) {
     rds_name <- str_extract(dir_with_files,
                             "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
         str_replace_all("/", "_") %>%
-        str_c(dir_with_files, "/", ., ".RDS")
+        str_c(dir_with_files, "/", ., ".rds")
     
     # Work with list of HTML (!!!) files
     files <- list.files(dir_with_files, full.names = T, pattern = ".html$") %>%
@@ -184,8 +190,3 @@ simple_tibble <- function(full_file_name) {
     
     return(my_tibble)
 }
-
-######################### TEST ZONE ########################
-
-# simple_tibble("krainafm_2017_05_01_01.html") %>%
-#     View()

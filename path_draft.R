@@ -15,16 +15,59 @@ source("simple_tibble.R")
 
 
 
-############### DRAFT ZONE ############################
+############### Construct path function ############################
 # Construct path with regex
 # Create function that will read data on one level of directory's structure
-str_view("test_data/krainafm/2017/05/01/krainafm_2017_05_01_01.html",
-         "(\\d{4}/\\d{2}/\\d{2})") # 2017/05/01
 
+# Set root dir for work
 my_path <- "test_data/krainafm/2017/05"
 (list.dirs(my_path))
-(mfiles <- str_subset(list.dirs(my_path),"(\\d{4}/\\d{2}/\\d{2})"))
 
+# Show level "test_data/krainafm/2017/05"
+(month_level <- list.dirs(my_path)[1]) # simple char
+# Show paths with files
+(days_level <- list.dirs(my_path)[-1]) # chr vector
+
+# Get chunk "krainafm/2017/05/01"
+str_view("raw_data/krainafm/2017/05/01", "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
+# Get chunk "krainafm/2017/05"
+str_view("raw_data/krainafm/2017/05", "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
+
+# Make full name for the big RDS file. File contains data from whole month
+(full_name <- str_extract(my_path, "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
+    str_replace_all("/", "_")) %>%
+    str_c(month_level, "/", ., ".rds")
+
+# Code block for merging little RDS-files into big one 
+
+# Get character vector with RDS-files
+map_chr(days_level,list.files, full.names = T, pattern = ".rds$")
+
+# Get simple RDS file
+(list.files(days_level[1],full.names = T, pattern = ".rds$"))
+(tb1 <- list.files(days_level[1],full.names = T, pattern = ".rds$") %>%
+        read_rds)
+class(tb1)
+(tb2 <- list.files(days_level[2],full.names = T, pattern = ".rds$") %>%
+        read_rds %>%
+        as_tibble())
+class(tb2)
+#map2_dfr()
+# Make name for RDS-file
+rds_name <- file_name(my_path, "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
+
+# Create big RDS file that contains data from whole month
+map_chr(days_level, list.files, full.names = T, pattern = ".rds$") %>%
+    map_dfr(readRDS) %>%
+    saveRDS(rds_name)
+
+# Result view
+readRDS(rds_name) %>%
+    View()
+
+#########################################################
+############ write_simple_tibble ########################
+#########################################################
 # Test regex template for file name
 # /\\d\\d$ for region 01..31
 (files <- str_subset(list.dirs("test_data"),"/\\d\\d$") %>%
@@ -56,7 +99,7 @@ str_extract(my_dirs[1], "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)")
 # Make full name for RDS file
 (dir_name <- str_extract(my_dirs[1], "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
     str_replace_all("/", "_")) %>%
-    str_c(my_dirs[1], "/", ., ".RDS")
+    str_c(my_dirs[1], "/", ., ".rds")
 
 
 # Get last dir name (dfef/dwf/04, 04 is true)
@@ -65,11 +108,13 @@ str_extract(my_dirs[1], "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)")
 # Get full dir name
 (dir_name <- str_replace_all(my_dirs[1], "/", "_"))
 # Make new name
-(rds_name <- paste0(my_dirs[1], "/", dir_name, ".RDS"))
+(rds_name <- paste0(my_dirs[1], "/", dir_name, ".rds"))
 # All at one
 (dir_name <- str_split(my_dirs[1], "/")[[1]] %>%
         .[length(.)] %>%
-        paste0(my_dirs[1], "/", ., ".RDS"))
+        paste0(my_dirs[1], "/", ., ".rds"))
+#################################################
+#################################################
 #################################################
 
 # Extract file name from full path
