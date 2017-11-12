@@ -5,3 +5,4 @@
 packrat/lib*/
 packrat/src/
 raw_data/
+test_data/*.rds
