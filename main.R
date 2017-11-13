@@ -61,17 +61,14 @@ new_days <- str_detect(days_level, "/(3[01]|[2][3-9])$") %>%
        "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".html$", map_dfr, simple_tibble) %>%
     invisible() # hide output
 
-# 4. Make tibble that will contain data for whole month
-map(days_level, write_read_tibbles,
-    re_file_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)",
-    re_file_ext = ".rds$", map_fun = map_dfr, my_fun = readRDS) %>%
-        invisible() # hide output
-
-days_level %>%
-    map_chr(list.files(full.names = T, pattern = ".rds$"))
+# 4. Create big RDS file that contains data from whole month
+my_path
+make_simple_tibbles(my_path,
+                    re_file_ext = ".rds$", map_fun = map_dfr, my_fun = readRDS)
 
 ## Result view
-file_name(month_level, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>%
-    readRDS %>%
+str_extract(my_path, "([/_a-z]+)([/0-9]+)(?=/\\d{2})") %>%
+    list.files(full.names = T, pattern = ".rds$") %>%
+    readRDS() %>%
     View()
 
