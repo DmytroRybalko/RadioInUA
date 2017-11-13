@@ -11,11 +11,33 @@ source("simple_tibble.R")
 
 ################### TEST file_name FUN #########
 
+# ReGex patterns for making file name from file's path
+test_root_path = c("test_data/krainafm/2017/05/01",
+                   "test_data/krainafm/2017/05", "test_data/krainafm/2017")
+
+test_re_file_name <- c("([a-z]+)(?=/\\d{4})([/0-9]+)(?=/\\d{2})",
+                       "([/_a-z]+)([/0-9]+)(?=/\\d{2})")
+## in: test_data/krainafm/2017/05/01; out: krainafm/2017/05
+str_view(test_root_path[1], test_re_file_name[2])
+(file_name(test_root_path[1], test_re_file_name))
+
+## in: test_data/krainafm/2017/05; out: krainafm/2017
+str_view(test_root_path[2], test_re_file_name[2])
+(file_name(test_root_path[2], test_re_file_name))
+
+## in: test_data/krainafm/2017; out: krainafm
+str_view(test_root_path[3], "([a-z]+)(?=/\\d{4})(?=/\\d{2})")
+(file_name(test_root_path[1], "([a-z]+)(?=/\\d{4})(?=/\\d{2})"))
+
 # Function make file name from file's path:
-test_root_path = c("test_data/krainafm/2017/05/01", "test_data/krainafm/2017/05")
 test_re_file_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)"
 # out: test_data/krainafm/2017/05/krainafm_2017_05.RDS
+
+str_view(test_root_path[1], test_re_file_name)
+(test_root_path[1])
 (file_name(test_root_path[1], test_re_file_name))
+
+str_view(test_root_path[2], test_re_file_name)
 (file_name(test_root_path[2], test_re_file_name))
 
 ################## Set root dir for work ##########
@@ -30,27 +52,73 @@ my_path <- "test_data/krainafm/2017/05"
 ################### TEST write_read_tibbles  FUN #########
 ## 1. Write simple tibble
 (test_path1 <- days_level[3]) #"test_data/krainafm/2017/05/26"
-write_read_tibbles(test_path1, "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".html$",
-                                map_fun = map_dfr, my_fun = simple_tibble)
+make_simple_tibbles(test_path1,
+                    re_file_ext = ".html$",
+                    map_fun = map_dfr, my_fun = simple_tibble)
+
 # Result view
-file_name(test_path1, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>%
-    readRDS %>%
-    View()
+# file_name(my_path, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>%
+#     readRDS %>%
+#     View()
 
 ## 2. Write multiple tibbles
-map(days_level, write_read_tibbles, "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".html$",
-    map_dfr, simple_tibble) %>%
-    invisible() # hide output
-
-## 3. Create big RDS file that contains data from whole month
-map(days_level, write_read_tibbles, "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".rds$",
-    map, readRDS) %>%
+map(days_level, make_simple_tibbles, re_file_ext = ".html$",
+    map_fun = map_dfr, my_fun = simple_tibble) %>%
     invisible() # hide output
 
 # Result view
-file_name(month_level, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>%
-    readRDS %>%
+list.files(my_path, full.names = T, pattern = ".rds$")
+
+# The alternative 
+# days_level %>%
+#     map(make_simple_tibbles,re_file_ext = ".html$", map_fun = map_dfr,
+#         my_fun = simple_tibble) %>%
+#     invisible() # hide output
+
+# Result view
+# tb01 <- file_name(days_level[1], "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+# View(tb01)
+# tb12 <- file_name(days_level[2], "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+# View(tb12)
+# tb26 <- file_name(days_level[3], "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+# View(tb26)
+# tb27 <- file_name(days_level[4], "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+# View(tb27)
+
+## 3. Create big RDS file that contains data from whole month
+make_simple_tibbles(my_path,
+                    re_file_ext = ".rds$", map_fun = map_dfr, my_fun = readRDS)
+
+# map(days_level, make_simple_tibbles, re_file_ext = ".rds$",
+#     map_fun = map_dfr, my_fun = readRDS) %>%
+#     invisible() # hide output
+
+## Result view
+list.files(my_path, full.names = T, pattern = ".rds$")
+str_extract(my_path, "([/_a-z]+)([/0-9]+)(?=/\\d{2})") %>%
+    list.files(full.names = T, pattern = ".rds$") %>%
+    readRDS() %>%
     View()
+
+# tb_big <- file_name(month_level, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+# View(tb_big)
+
+## 3. Create big RDS file that contains data from whole month raw_data/2017/05
+my_path <- "raw_data/krainafm/2017/05"
+(list.dirs(my_path))
+# Show level "raw_data/krainafm/2017/05"
+(month_level <- list.dirs(my_path)[1]) # simple char
+# Show paths with files
+(days_level <- list.dirs(my_path)[-1]) # chr vector
+
+map(days_level, write_read_tibbles, "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".rds$",
+    map_dfr, readRDS) %>%
+    invisible() # hide output
+
+# Result view
+tb_big <- file_name(month_level, "([a-z]+)(?=/\\d{4})(/[0-9/]+)") %>% readRDS
+View(tb_big)
+
 
 ################### TEST write_simple_tibbles FUN #########
 # Directory with test data

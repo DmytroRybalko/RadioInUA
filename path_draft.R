@@ -20,7 +20,7 @@ source("simple_tibble.R")
 # Create function that will read data on one level of directory's structure
 
 # Set root dir for work
-my_path <- "test_data/krainafm/2017/05"
+my_path <- "test_data/krainafm/2017/05/03"
 (list.dirs(my_path))
 
 # Show level "test_data/krainafm/2017/05"
@@ -34,10 +34,12 @@ str_view("raw_data/krainafm/2017/05/01", "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
 str_view("raw_data/krainafm/2017/05", "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
 
 # Make full name for the big RDS file. File contains data from whole month
+(file_path <- str_extract(my_path, "([/_a-z]+)([/0-9]+)(?=/\\d{2})"))
 (full_name <- str_extract(my_path, "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)") %>%
     str_replace_all("/", "_")) %>%
-    str_c(month_level, "/", ., ".rds")
-
+    str_c(file_path, "/", ., ".rds") #str_c(month_level, "/", ., ".rds")
+my_path
+saveRDS(c(1, 2, 3), "./abc.rds")
 # Code block for merging little RDS-files into big one 
 
 # Get character vector with RDS-files
