@@ -1,6 +1,6 @@
 library(stringr)
 library(tidyverse)
-source("simple_tibble.R")
+source("R/scraping_functions.R")
 
 
 ## TODO:
@@ -139,10 +139,10 @@ write_simple_tibbles(real_dir[1])
 readRDS("raw_data/krainafm/2017/05/01/krainafm_2017_05_01.RDS") %>%
     View()
 
-################### TEST simple_tibble FUN ################
-#path2file <- "krainafm_2017_05_01_01.html"
-path2file <- "test_data/write_simple_tibble/01/krainafm_2017_05_26_01.html"
-#xml2::read_html(path2file)
 
-simple_tibble(path2file) %>%
+################### TEST simple_tibble FUN ################
+path2file <- c("data/test/krainafm_2017_05_01_01.html",
+               "data/test/krainafm_2017_05_01_01.html")
+
+simple_tibble(path2file[1]) %>%
     View()

@@ -5,15 +5,18 @@ library(stringr)
 library(readr)
 library(lubridate)
 
-################### HELP FUNCTIONS #####################
+################### extract_data function  #####################
 
 # Function extract data from xml object 
 extract_data <- function(composition, dom) {
+    # composition is an xml object
+    # dom is object from DOM-tree like "div.col-xs-12.playlist-item"
     html_nodes(composition, dom) %>%
         html_text() %>%
         subset(nchar(.) > 1) # replace empty element in vector
 }
 
+################### extract_data function  #####################
 file_name <- function(file_path, re_file_name, file_ext = ".rds") {
     # Function make file name from file's path:
     # root_path = "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
@@ -25,30 +28,6 @@ file_name <- function(file_path, re_file_name, file_ext = ".rds") {
        str_c(file_path, "/", ., file_ext) #str_c("./", ., file_ext)
 }
 
-file_name2 <- function(file_path, re_file_name, file_ext = ".rds") {
-    # Function make file name from file's path:
-    # root_path = "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
-    # re_file_name = "([a-z]+)(?=/\\d\\d\\d\\d/)(/[0-9/]+)"
-    # out: test_data/krainafm/2017/05/krainafm_2017_05.rds
-    
-    str_extract(file_path, re_file_name) %>%
-        str_replace_all("/", "_") %>%
-        str_c(file_path, "/", ., file_ext) #str_c("./", ., file_ext)
-}    
-# Function takes paths to dirs according to pattern and pass theirs to
-# particular function
-construct_path <- function(my_path, my_pattern, my_func) {
-    # path example "test_data/krainafm/2017/05"
-    # pattern example regex: "(\\d{4}/\\d{2}/\\d{2})"
-    # This combination of path and pattern gives directories with files:
-    # "test_data/krainafm/2017/05/01/krainafm_2017_05_01_01.html" and filter
-    # directories like this:
-    # "test_data/krainafm/2017/05" or "test_data/krainafm/2017"
-    
-    # Filter dirs that match pattern
-    files <- str_subset(list.dirs(my_path), my_pattern) %>%
-        map_fun(my_fun)
-}
 ########################################################
 
 
@@ -120,14 +99,16 @@ write_simple_tibbles <- function(dir_with_files) {
 }
 
 ################### Make TIBBLE ##########################
+# Function scraping data from html file into tibble which has following
+# template:
 
-# Observation template look like:
 # FM station | year | month | day | start_hour | start_min | end_hour | end_min
 # duration_min | duration_sec | singer | song
 
 # Each variable in template is a vector. Then we should bind theirs in tibble.
 
 simple_tibble <- function(full_file_name) {
+    # full_file_name look like ../krainafm_2017_05_01_01.html
     
     # Load XML data from file
     composition <- xml2::read_html(full_file_name)
