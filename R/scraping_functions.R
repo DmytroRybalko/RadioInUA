@@ -5,41 +5,6 @@ library(stringr)
 library(readr)
 library(lubridate)
 
-#########################################################
-################### extract_data  #######################
-#########################################################
-
-# Function extract data from xml object 
-extract_data <- function(composition, dom) {
-    # composition is an xml object
-    # dom is object from DOM-tree like "div.col-xs-12.playlist-item"
-    html_nodes(composition, dom) %>%
-        html_text() %>%
-        subset(nchar(.) > 1) # replace empty element in vector
-}
-
-#########################################################
-################### file_name ###########################
-#########################################################
-
-file_name <- function(in_path, out_path,
-                      re_rds_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)") {
-    
-    # Function make file name from file's path:
-    # in_path - path to files (html or RDS) for processing:
-    # "data/raw/krainafm/2017/05/01/01"
-    # out_path - path to processed files (RDS):
-    # "data/processed/krainafm/2017/05"
-    # re_rds_name -regex template for RDS-file name:
-    # "([a-z]+)(?=/\\d{4})(/[0-9/]+)"
-    # output is RDS file: out_path/krainafm_2017_05.rds
-    
-    # Make full name for RDS-file
-    #rds_path <- str_extract(path2RDS, re_rds_path)
-    rds_name <- str_extract(in_path, re_rds_name) %>%
-        str_replace_all("/", "_") %>%
-        str_c(out_path, "/", .,".rds")
-}
 
 #########################################################
 ################### write_read_tibbles ##################
@@ -68,27 +33,27 @@ write_read_tibbles <- function(
 }
 
 #########################################################
-################### make simple tibbles #################
+################### file_name ###########################
 #########################################################
-# make_simple_tibbles <- function(
-#     path2files,
-#     re_rds_path = "([/_a-z]+)([/0-9]+)(?=/\\d{2})",
-#     re_rds_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)",
-#     re_file_ext = ".html$", # ".rds$"
-#     map_fun = map_dfr,
-#     my_fun = simple_tibble) {
-#     
-#     # Make full name for RDS-file
-#     rds_path <- str_extract(path2files, re_rds_path)
-#     rds_name <- str_extract(path2files, re_rds_name) %>%
-#     str_replace_all("/", "_") %>%
-#     str_c(rds_path, "/", .,".rds")
-#     
-#     # Work with list of HTML (!!!) files
-#     files <- list.files(path2files, full.names = T, pattern = re_file_ext) %>%
-#         map_fun(my_fun) %>%
-#         saveRDS(rds_name)
-# }
+
+file_name <- function(in_path, out_path,
+                      re_rds_name = "([a-z]+)(?=/\\d{4})(/[0-9/]+)") {
+    
+    # Function make file name from file's path:
+    # in_path - path to files (html or RDS) for processing:
+    # "data/raw/krainafm/2017/05/01/01"
+    # out_path - path to processed files (RDS):
+    # "data/processed/krainafm/2017/05"
+    # re_rds_name -regex template for RDS-file name:
+    # "([a-z]+)(?=/\\d{4})(/[0-9/]+)"
+    # output is RDS file: out_path/krainafm_2017_05.rds
+    
+    # Make full name for RDS-file
+    #rds_path <- str_extract(path2RDS, re_rds_path)
+    rds_name <- str_extract(in_path, re_rds_name) %>%
+        str_replace_all("/", "_") %>%
+        str_c(out_path, "/", .,".rds")
+}
 
 #########################################################
 ################### simple_tibble #######################
@@ -195,4 +160,17 @@ simple_tibble <- function(full_file_name) {
                         song = song)
     
     return(my_tibble)
+}
+
+#########################################################
+################### extract_data  #######################
+#########################################################
+
+# Function extract data from xml object 
+extract_data <- function(composition, dom) {
+    # composition is an xml object
+    # dom is object from DOM-tree like "div.col-xs-12.playlist-item"
+    html_nodes(composition, dom) %>%
+        html_text() %>%
+        subset(nchar(.) > 1) # replace empty element in vector
 }

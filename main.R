@@ -4,71 +4,43 @@
 # contain in html files. So we extract these data to make final tibble that will
 # contain data for this month. 
 
+source("R/scraping_functions.R")
+
 # 1. Set up directory with data.
-#library(stringr)
-#library(tidyverse)
-source("simple_tibble.R")
+in_path <- "data/raw/krainafm/2017/05"
+(list.dirs(in_path))
+out_path <- "data/processing/krainafm/2017/05"
+(list.dirs(out_path))
 
-my_path <- "raw_data/krainafm/2017/05"
-(list.dirs(my_path))
-
-# Show level "test_data/krainafm/2017/05"
-(month_level <- list.dirs(my_path)[1]) # simple char
-# Show paths with files
-(days_level <- list.dirs(my_path)[-1]) # chr vector
+## Show level "../krainafm/2017/05"
+(month_level <- list.dirs(in_path)[1]) # simple char
+## Show paths with files
+(days_level <- list.dirs(in_path)[-1]) # chr vector
 
 # 2. Write tibble for one day (for testing)
-
-# Make name for RDS-file
-local_path <- days_level[12]
-make_simple_tibbles(local_path, re_file_ext = ".html$",
+(local_path <- days_level[12])
+write_read_tibbles(local_path, out_path, re_file_ext = ".html$",
                     map_fun = map_dfr, my_fun = simple_tibble)
 
-#rds_name <- file_name(local_path, "([a-z]+)(?=/\\d{4})(/[0-9/]+)")
-#write_read_tibbles(local_path, re_file_ext = ".html$", my_fun = simple_tibble)
-
-# Result view
-str_extract(local_path, "([/_a-z]+)([/0-9]+)(?=/\\d{2})") %>%
-    list.files(full.names = T, pattern = ".rds$") %>%
-    readRDS() %>%
+## Result view
+(file_name(local_path, out_path))
+file_name(local_path, out_path) %>%
+    readRDS %>%
     View()
 
-# readRDS(rds_name) %>%
-#     View()
-
-## 2. Write tibbles this data from each day in range 1-31
-map(days_level, make_simple_tibbles, re_file_ext = ".html$",
+# 3. Write tibbles this data from each day in range 1-31
+map(days_level, write_read_tibbles, out_path, re_file_ext = ".html$",
     map_fun = map_dfr, my_fun = simple_tibble) %>%
     invisible() # hide output
 
-#!!!!! time ~ 60 c
 
-# days_level %>%
-#     map(write_read_tibbles,
-#         "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".html$", map_dfr, simple_tibble) %>%
-#     invisible() # hide output
-
-## Pattern for choosing folders in range 21-31 (3[01]|[2][1-9])
-str_view("raw_data/krainafm/2017/05/22", "([a-z]+)(?=/\\d{4})(/2017/05/)(3[01]|[2][1-9])")
-str_view("raw_data/krainafm/2017/05/22", "(/2017/05/)(3[01]|[2][1-9])$")
-
-(new_days <- str_detect(days_level, "/(3[01]|[2][1-9])$") %>%
-        new_days[.])
-
-new_days <- str_detect(days_level, "/(3[01]|[2][3-9])$") %>%
-    new_days[.] %>%
-    map(write_read_tibbles,
-       "([a-z]+)(?=/\\d{4})(/[0-9/]+)", ".html$", map_dfr, simple_tibble) %>%
-    invisible() # hide output
-
-# 4. Create big RDS file that contains data from whole month
-my_path
-make_simple_tibbles(my_path,
+# 4. Create big rds-file that contains data from whole month
+in_path2 <- "data/processing/krainafm/2017/05"
+out_path2 <- "data/processing/krainafm/2017"
+write_read_tibbles(in_path2, out_path2,
                     re_file_ext = ".rds$", map_fun = map_dfr, my_fun = readRDS)
 
 ## Result view
-str_extract(my_path, "([/_a-z]+)([/0-9]+)(?=/\\d{2})") %>%
-    list.files(full.names = T, pattern = ".rds$") %>%
-    readRDS() %>%
+file_name(in_path2, out_path2) %>%
+    readRDS %>%
     View()
-
